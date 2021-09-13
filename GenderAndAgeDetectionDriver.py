@@ -20,7 +20,7 @@ def getFaceBox(net, frame, confidenceThreshold = 0.7):
             boundingBoxes.append([x1, y1, x2, y2])
             cv.rectangle(frameStreamed, (x1, y1), (x2, y2), (253, 246, 203), int(round(frameHeight/700)), 8)
     return (frameStreamed, boundingBoxes)
-parser = argparse.ArgumentParser(description = 'Driver script')
+parser = argparse.ArgumentParser(description = 'Driver script provision to upload an image to evaluate')
 parser.add_argument("-i")
 args = parser.parse_args()
 faceDetectionProto = "FaceDetectionProto.pbtxt"
@@ -29,8 +29,8 @@ ageSegDetectionProto = "AgeSegDetectionProto.prototxt"
 ageSegDetectionModel = "AgeSegDetectionModel.caffemodel"
 genderDetectionProto = "GenderDetectionProto.prototxt"
 genderDetectionModel = "GenderDetectionModel.caffemodel"
-modelMeanValues = (70.84946212, 96.937281029, 109.9236400323)
-ageList = ['(0-4)', '(6-12)', '(15-19)', '(21-28)', '(31-40)', '(44-56)', '(58-68)', '(70-100)']
+modelMeanSubtractionValues = (103.93, 116.77, 123.68)
+ageList = ['(0-2)', '(4-6)', '(8-12)', '(25-32)', '(25-32)', '(38-43)', '(48-53)', '(60-)']
 genderList = ['Male', 'Female']
 faceConvNet = cv.dnn.readNet(faceDetectionModel, faceDetectionProto)
 ageConvNet = cv.dnn.readNetFromCaffe(ageSegDetectionProto, ageSegDetectionModel)
@@ -48,7 +48,7 @@ while cv.waitKey(1) < 0:
         continue
     for boundingBox in boundingBoxes:
         detectedFace = capturedFrame[max(0, boundingBox[1] - padding) : min(boundingBox[3] + padding, capturedFrame.shape[0] - 1), max(0, boundingBox[0] - padding) : min(boundingBox[2] + padding, capturedFrame.shape[1] - 1)]
-        blob = cv.dnn.blobFromImage(detectedFace, 1.0, (227, 227), modelMeanValues, swapRB = False)
+        blob = cv.dnn.blobFromImage(detectedFace, 1.0, (227, 227), modelMeanSubtractionValues, swapRB = False)
         genderConvNet.setInput(blob)
         genderPredictions = genderConvNet.forward()
         detectedGender = genderList[genderPredictions[0].argmax()]
@@ -62,7 +62,7 @@ while cv.waitKey(1) < 0:
             cv.putText(frameFace, label, (boundingBox[0] - 5, boundingBox[1] - 10), cv.FONT_HERSHEY_COMPLEX, 0.6, (255, 204, 255), 0, cv.LINE_AA)
         else:
             cv.putText(frameFace, label, (boundingBox[0] - 5, boundingBox[1] - 10), cv.FONT_HERSHEY_COMPLEX, 0.6, (255, 255, 204), 0, cv.LINE_AA)
-        cv.imshow("Age&GenderDetection", frameFace)
+        cv.imshow("Gender&AgeSegmentDetection", frameFace)
         name = args.i       
-    #print("Time : {:.3f}".format(time.time() - t))
+    
 
